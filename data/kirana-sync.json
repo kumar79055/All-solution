@@ -1,0 +1,594 @@
+{
+  "lastShopId": "KRN6743",
+  "stores": {
+    "KRN6743": {
+      "shopId": "KRN6743",
+      "distributors": [
+        {
+          "id": "dist-1",
+          "name": "मोहन लाल जी (9876543210)",
+          "companyName": "श्री बालाजी एजेंसीज (पारले, ब्रिटानिया व नमकीन)",
+          "whatsappNumber": "9876543210",
+          "alternatePhone": "9876543211",
+          "category": "बिस्कुट, नमकीन व बेकरी",
+          "deliveryDays": [
+            "सोमवार",
+            "बुधवार",
+            "शनिवार"
+          ],
+          "upiId": "balajiagencies@upi",
+          "address": "गोदाम नं. 4, ट्रांसपोर्ट नगर",
+          "notes": "शाम 5 बजे से पहले ऑर्डर करने पर अगली सुबह डिलीवरी",
+          "createdAt": "2026-11-11T13:13:32.371Z"
+        },
+        {
+          "id": "dist-2",
+          "name": "अमित भाई (9823456780)",
+          "companyName": "अग्रवाल ऑइल ट्रेडर्स (फॉर्च्यून, धारा व घी)",
+          "whatsappNumber": "9823456780",
+          "alternatePhone": "9823456781",
+          "category": "खाद्य तेल, रिफाइंड व देशी घी",
+          "deliveryDays": [
+            "मंगलवार",
+            "शुक्रवार"
+          ],
+          "upiId": "agarwaloil@paytm",
+          "address": "दुकान 15, नई तेल मंडी",
+          "notes": "पेटी व पीपे का भाव रोज सुबह 10 बजे अपडेट होता है",
+          "createdAt": "2026-11-11T13:13:32.372Z"
+        },
+        {
+          "id": "dist-3",
+          "name": "सुरेश जी (9812345678)",
+          "companyName": "गुप्ता किराना मर्चेंट्स (एमडीएच, कैच, दालें व चीनी)",
+          "whatsappNumber": "9812345678",
+          "alternatePhone": "",
+          "category": "मसाले, दालें, आटा व चीनी",
+          "deliveryDays": [
+            "सोमवार",
+            "गुरुवार"
+          ],
+          "upiId": "guptakirana@oksbi",
+          "address": "गल्ला मंडी, गेट नं 2",
+          "notes": "50 किलो चीनी/दाल बोरी और मसाले पैकेट",
+          "createdAt": "2026-11-11T13:13:32.372Z"
+        },
+        {
+          "id": "dist-4",
+          "name": "राजीव वर्मा (9898981234)",
+          "companyName": "हिंदुस्तान कंज्यूमर एजेंसी (सर्फ, साबुन व कोलगेट)",
+          "whatsappNumber": "9898981234",
+          "alternatePhone": "",
+          "category": "साबुन, डिटर्जेंट व कॉस्मेटिक्स",
+          "deliveryDays": [
+            "बुधवार",
+            "शनिवार"
+          ],
+          "upiId": "rajiv.hul@icici",
+          "address": "सिविल लाइन्स",
+          "notes": "हर शनिवार नया ऑफर और स्कीम आती है",
+          "createdAt": "2026-11-11T13:13:32.372Z"
+        },
+        {
+          "id": "dist-5",
+          "name": "दिनेश भाई (9765432109)",
+          "companyName": "कृष्णा बेवरेजेज (टाटा चाय, वाघ बकरी व अमूल)",
+          "whatsappNumber": "9765432109",
+          "alternatePhone": "",
+          "category": "चाय पत्ती, कॉफी व डेयरी प्रोडक्ट्स",
+          "deliveryDays": [
+            "सोमवार",
+            "बुधवार",
+            "शुक्रवार"
+          ],
+          "upiId": "krishnabev@upi",
+          "address": "रेलवे रोड",
+          "notes": "दूध-छाछ का आर्डर रात 9 बजे तक",
+          "createdAt": "2026-11-11T13:13:32.372Z"
+        }
+      ],
+      "products": [
+        {
+          "id": "prod-1",
+          "name": "Parle-G ₹5 पैकेट",
+          "hindiName": "पारले-जी ₹5",
+          "distributorId": "dist-1",
+          "category": "बिस्कुट, नमकीन व बेकरी",
+          "currentStock": 2,
+          "minStockAlert": 5,
+          "unit": "पेटी (Carton/Box)",
+          "wholesalePrice": 480,
+          "mrp": 600,
+          "notes": "1 पेटी में 120 पैकेट",
+          "updatedAt": "2026-11-11T13:13:32.372Z"
+        },
+        {
+          "id": "prod-2",
+          "name": "Britannia Good Day Butter ₹10",
+          "hindiName": "गुड डे बटर ₹10",
+          "distributorId": "dist-1",
+          "category": "बिस्कुट, नमकीन व बेकरी",
+          "currentStock": 1,
+          "minStockAlert": 3,
+          "unit": "पेटी (Carton/Box)",
+          "wholesalePrice": 620,
+          "mrp": 720,
+          "notes": "1 पेटी में 72 पैकेट",
+          "updatedAt": "2026-11-11T13:13:32.372Z"
+        },
+        {
+          "id": "prod-3",
+          "name": "Marie Gold Biscuits ₹10",
+          "hindiName": "मेरी गोल्ड ₹10",
+          "distributorId": "dist-1",
+          "category": "बिस्कुट, नमकीन व बेकरी",
+          "currentStock": 6,
+          "minStockAlert": 3,
+          "unit": "पेटी (Carton/Box)",
+          "wholesalePrice": 580,
+          "mrp": 680,
+          "notes": "",
+          "updatedAt": "2026-11-11T13:13:32.372Z"
+        },
+        {
+          "id": "prod-4",
+          "name": "Haldiram Bhujia Sev 200g",
+          "hindiName": "हल्दीराम भुजिया सेव 200 ग्राम",
+          "distributorId": "dist-1",
+          "category": "बिस्कुट, नमकीन व बेकरी",
+          "currentStock": 3,
+          "minStockAlert": 5,
+          "unit": "दर्जन (Dozen)",
+          "wholesalePrice": 620,
+          "mrp": 720,
+          "notes": "12 पैकेट प्रति बंडल",
+          "updatedAt": "2026-11-11T13:13:32.372Z"
+        },
+        {
+          "id": "prod-5",
+          "name": "Balaji Wafers Cream & Onion ₹5",
+          "hindiName": "बालाजी वेफर्स ₹5",
+          "distributorId": "dist-1",
+          "category": "बिस्कुट, नमकीन व बेकरी",
+          "currentStock": 1,
+          "minStockAlert": 4,
+          "unit": "पेटी (Carton/Box)",
+          "wholesalePrice": 320,
+          "mrp": 400,
+          "notes": "80 पैकेट प्रति पेटी",
+          "updatedAt": "2026-11-11T13:13:32.372Z"
+        },
+        {
+          "id": "prod-6",
+          "name": "Fortune Refined Soyabean Oil 1L Pouch",
+          "hindiName": "फॉर्च्यून सोयाबीन तेल 1 लीटर",
+          "distributorId": "dist-2",
+          "category": "खाद्य तेल, रिफाइंड व देशी घी",
+          "currentStock": 3,
+          "minStockAlert": 6,
+          "unit": "पेटी (Carton/Box)",
+          "wholesalePrice": 1560,
+          "mrp": 1740,
+          "notes": "1 पेटी = 12 पाउच (12 लीटर)",
+          "updatedAt": "2026-11-11T13:13:32.372Z"
+        },
+        {
+          "id": "prod-7",
+          "name": "Engine Mustard Oil (सरसों तेल) 1L Pouch",
+          "hindiName": "इंजन सरसों तेल 1 लीटर",
+          "distributorId": "dist-2",
+          "category": "खाद्य तेल, रिफाइंड व देशी घी",
+          "currentStock": 2,
+          "minStockAlert": 5,
+          "unit": "पेटी (Carton/Box)",
+          "wholesalePrice": 1820,
+          "mrp": 2040,
+          "notes": "1 पेटी = 12 पाउच",
+          "updatedAt": "2026-11-11T13:13:32.372Z"
+        },
+        {
+          "id": "prod-8",
+          "name": "Fortune Sunlite Sunflower Oil 1L",
+          "hindiName": "फॉर्च्यून सूरजमुखी तेल 1 लीटर",
+          "distributorId": "dist-2",
+          "category": "खाद्य तेल, रिफाइंड व देशी घी",
+          "currentStock": 8,
+          "minStockAlert": 3,
+          "unit": "पेटी (Carton/Box)",
+          "wholesalePrice": 1720,
+          "mrp": 1920,
+          "notes": "",
+          "updatedAt": "2026-11-11T13:13:32.372Z"
+        },
+        {
+          "id": "prod-9",
+          "name": "Amul Pure Desi Ghee 1L Tin",
+          "hindiName": "अमुल शुद्ध देशी घी 1 लीटर टिन",
+          "distributorId": "dist-2",
+          "category": "खाद्य तेल, रिफाइंड व देशी घी",
+          "currentStock": 4,
+          "minStockAlert": 6,
+          "unit": "डिब्बा (Tin/Jar)",
+          "wholesalePrice": 620,
+          "mrp": 675,
+          "notes": "कार्टन में 12 टिन",
+          "updatedAt": "2026-11-11T13:13:32.372Z"
+        },
+        {
+          "id": "prod-10",
+          "name": "MDH Deggi Mirch 100g",
+          "hindiName": "एमडीएच देगी मिर्च 100 ग्राम",
+          "distributorId": "dist-3",
+          "category": "मसाले, दालें, आटा व चीनी",
+          "currentStock": 4,
+          "minStockAlert": 10,
+          "unit": "दर्जन (Dozen)",
+          "wholesalePrice": 980,
+          "mrp": 1140,
+          "notes": "12 डिब्बे प्रति पैक",
+          "updatedAt": "2026-11-11T13:13:32.372Z"
+        },
+        {
+          "id": "prod-11",
+          "name": "Catch Sabzi Masala 100g",
+          "hindiName": "कैच सब्जी मसाला 100 ग्राम",
+          "distributorId": "dist-3",
+          "category": "मसाले, दालें, आटा व चीनी",
+          "currentStock": 2,
+          "minStockAlert": 6,
+          "unit": "दर्जन (Dozen)",
+          "wholesalePrice": 680,
+          "mrp": 780,
+          "notes": "",
+          "updatedAt": "2026-11-11T13:13:32.372Z"
+        },
+        {
+          "id": "prod-12",
+          "name": "Tata Salt (टाटा नमक) 1kg",
+          "hindiName": "टाटा शुद्ध नमक 1 किलो",
+          "distributorId": "dist-3",
+          "category": "मसाले, दालें, आटा व चीनी",
+          "currentStock": 1,
+          "minStockAlert": 4,
+          "unit": "बोरी / कट्टा (Sack/Bag)",
+          "wholesalePrice": 620,
+          "mrp": 700,
+          "notes": "1 बोरी में 25 पैकेट (25 किलो)",
+          "updatedAt": "2026-11-11T13:13:32.372Z"
+        },
+        {
+          "id": "prod-13",
+          "name": "अरहर दाल (Toor Dal Premium) 30kg बोरी",
+          "hindiName": "अरहर दाल 30 किलो",
+          "distributorId": "dist-3",
+          "category": "मसाले, दालें, आटा व चीनी",
+          "currentStock": 1,
+          "minStockAlert": 2,
+          "unit": "बोरी / कट्टा (Sack/Bag)",
+          "wholesalePrice": 4200,
+          "mrp": 4650,
+          "notes": "देसी पॉलिश अरहर दाल",
+          "updatedAt": "2026-11-11T13:13:32.372Z"
+        },
+        {
+          "id": "prod-14",
+          "name": "मधुर चीनी (Madhur Sugar) 50kg बोरी",
+          "hindiName": "मधुर सल्फर फ्री चीनी 50 किलो",
+          "distributorId": "dist-3",
+          "category": "मसाले, दालें, आटा व चीनी",
+          "currentStock": 1,
+          "minStockAlert": 2,
+          "unit": "बोरी / कट्टा (Sack/Bag)",
+          "wholesalePrice": 2050,
+          "mrp": 2200,
+          "notes": "50 किलो सीलबंद बोरी",
+          "updatedAt": "2026-11-11T13:13:32.372Z"
+        },
+        {
+          "id": "prod-15",
+          "name": "Aashirvaad Shudh Chakki Atta 10kg",
+          "hindiName": "आशीर्वाद आटा 10 किलो",
+          "distributorId": "dist-3",
+          "category": "मसाले, दालें, आटा व चीनी",
+          "currentStock": 5,
+          "minStockAlert": 8,
+          "unit": "पैकेट (Packet)",
+          "wholesalePrice": 385,
+          "mrp": 420,
+          "notes": "",
+          "updatedAt": "2026-11-11T13:13:32.372Z"
+        },
+        {
+          "id": "prod-16",
+          "name": "Surf Excel Easy Wash 1kg",
+          "hindiName": "सर्फ एक्सेल 1 किलो",
+          "distributorId": "dist-4",
+          "category": "साबुन, डिटर्जेंट व कॉस्मेटिक्स",
+          "currentStock": 4,
+          "minStockAlert": 10,
+          "unit": "पेटी (Carton/Box)",
+          "wholesalePrice": 1540,
+          "mrp": 1750,
+          "notes": "1 पेटी = 14 पैकेट",
+          "updatedAt": "2026-11-11T13:13:32.372Z"
+        },
+        {
+          "id": "prod-17",
+          "name": "Lifebuoy Total Soap 125g (Pack of 4)",
+          "hindiName": "लाइफबॉय साबुन 4 का पैक",
+          "distributorId": "dist-4",
+          "category": "साबुन, डिटर्जेंट व कॉस्मेटिक्स",
+          "currentStock": 3,
+          "minStockAlert": 6,
+          "unit": "पेटी (Carton/Box)",
+          "wholesalePrice": 1120,
+          "mrp": 1280,
+          "notes": "",
+          "updatedAt": "2026-11-11T13:13:32.372Z"
+        },
+        {
+          "id": "prod-18",
+          "name": "Vim Bar Lemon ₹10",
+          "hindiName": "विम बार ₹10",
+          "distributorId": "dist-4",
+          "category": "साबुन, डिटर्जेंट व कॉस्मेटिक्स",
+          "currentStock": 2,
+          "minStockAlert": 5,
+          "unit": "पेटी (Carton/Box)",
+          "wholesalePrice": 650,
+          "mrp": 750,
+          "notes": "1 पेटी = 80 टिक्की",
+          "updatedAt": "2026-11-11T13:13:32.372Z"
+        },
+        {
+          "id": "prod-19",
+          "name": "Colgate Strong Teeth 100g",
+          "hindiName": "कोलगेट मंजन 100 ग्राम",
+          "distributorId": "dist-4",
+          "category": "साबुन, डिटर्जेंट व कॉस्मेटिक्स",
+          "currentStock": 8,
+          "minStockAlert": 12,
+          "unit": "दर्जन (Dozen)",
+          "wholesalePrice": 690,
+          "mrp": 780,
+          "notes": "12 पीस प्रति डिब्बा",
+          "updatedAt": "2026-11-11T13:13:32.372Z"
+        },
+        {
+          "id": "prod-20",
+          "name": "Tata Tea Premium 250g Pouch",
+          "hindiName": "टाटा टी प्रीमियम 250 ग्राम",
+          "distributorId": "dist-5",
+          "category": "चाय पत्ती, कॉफी व डेयरी प्रोडक्ट्स",
+          "currentStock": 3,
+          "minStockAlert": 8,
+          "unit": "दर्जन (Dozen)",
+          "wholesalePrice": 1420,
+          "mrp": 1560,
+          "notes": "12 पाउच प्रति बंडल",
+          "updatedAt": "2026-11-11T13:13:32.372Z"
+        },
+        {
+          "id": "prod-21",
+          "name": "Wagh Bakri Chai 500g Box",
+          "hindiName": "वाघ बकरी चाय 500 ग्राम",
+          "distributorId": "dist-5",
+          "category": "चाय पत्ती, कॉफी व डेयरी प्रोडक्ट्स",
+          "currentStock": 2,
+          "minStockAlert": 4,
+          "unit": "पेटी (Carton/Box)",
+          "wholesalePrice": 2850,
+          "mrp": 3100,
+          "notes": "12 डिब्बे प्रति पेटी",
+          "updatedAt": "2026-11-11T13:13:32.372Z"
+        },
+        {
+          "id": "prod-22",
+          "name": "Amul Taaza Milk 500ml Pouch",
+          "hindiName": "अमुल ताजा दूध 500 मिली",
+          "distributorId": "dist-5",
+          "category": "चाय पत्ती, कॉफी व डेयरी प्रोडक्ट्स",
+          "currentStock": 5,
+          "minStockAlert": 10,
+          "unit": "पेटी (Carton/Box)",
+          "wholesalePrice": 590,
+          "mrp": 650,
+          "notes": "24 पाउच का क्रेट",
+          "updatedAt": "2026-11-11T13:13:32.372Z"
+        }
+      ],
+      "cart": [
+        {
+          "productId": "prod-1",
+          "productName": "Parle-G ₹5 पैकेट",
+          "distributorId": "dist-1",
+          "quantity": 8,
+          "unit": "पेटी (Carton/Box)",
+          "wholesalePrice": 480,
+          "mrp": 600
+        },
+        {
+          "productId": "prod-2",
+          "productName": "Britannia Good Day Butter ₹10",
+          "distributorId": "dist-1",
+          "quantity": 5,
+          "unit": "पेटी (Carton/Box)",
+          "wholesalePrice": 620,
+          "mrp": 720
+        },
+        {
+          "productId": "prod-4",
+          "productName": "Haldiram Bhujia Sev 200g",
+          "distributorId": "dist-1",
+          "quantity": 7,
+          "unit": "दर्जन (Dozen)",
+          "wholesalePrice": 620,
+          "mrp": 720
+        },
+        {
+          "productId": "prod-5",
+          "productName": "Balaji Wafers Cream & Onion ₹5",
+          "distributorId": "dist-1",
+          "quantity": 7,
+          "unit": "पेटी (Carton/Box)",
+          "wholesalePrice": 320,
+          "mrp": 400
+        },
+        {
+          "productId": "prod-6",
+          "productName": "Fortune Refined Soyabean Oil 1L Pouch",
+          "distributorId": "dist-2",
+          "quantity": 9,
+          "unit": "पेटी (Carton/Box)",
+          "wholesalePrice": 1560,
+          "mrp": 1740
+        },
+        {
+          "productId": "prod-7",
+          "productName": "Engine Mustard Oil (सरसों तेल) 1L Pouch",
+          "distributorId": "dist-2",
+          "quantity": 8,
+          "unit": "पेटी (Carton/Box)",
+          "wholesalePrice": 1820,
+          "mrp": 2040
+        },
+        {
+          "productId": "prod-9",
+          "productName": "Amul Pure Desi Ghee 1L Tin",
+          "distributorId": "dist-2",
+          "quantity": 8,
+          "unit": "डिब्बा (Tin/Jar)",
+          "wholesalePrice": 620,
+          "mrp": 675
+        },
+        {
+          "productId": "prod-10",
+          "productName": "MDH Deggi Mirch 100g",
+          "distributorId": "dist-3",
+          "quantity": 16,
+          "unit": "दर्जन (Dozen)",
+          "wholesalePrice": 980,
+          "mrp": 1140
+        },
+        {
+          "productId": "prod-11",
+          "productName": "Catch Sabzi Masala 100g",
+          "distributorId": "dist-3",
+          "quantity": 10,
+          "unit": "दर्जन (Dozen)",
+          "wholesalePrice": 680,
+          "mrp": 780
+        },
+        {
+          "productId": "prod-12",
+          "productName": "Tata Salt (टाटा नमक) 1kg",
+          "distributorId": "dist-3",
+          "quantity": 7,
+          "unit": "बोरी / कट्टा (Sack/Bag)",
+          "wholesalePrice": 620,
+          "mrp": 700
+        },
+        {
+          "productId": "prod-13",
+          "productName": "अरहर दाल (Toor Dal Premium) 30kg बोरी",
+          "distributorId": "dist-3",
+          "quantity": 3,
+          "unit": "बोरी / कट्टा (Sack/Bag)",
+          "wholesalePrice": 4200,
+          "mrp": 4650
+        },
+        {
+          "productId": "prod-14",
+          "productName": "मधुर चीनी (Madhur Sugar) 50kg बोरी",
+          "distributorId": "dist-3",
+          "quantity": 3,
+          "unit": "बोरी / कट्टा (Sack/Bag)",
+          "wholesalePrice": 2050,
+          "mrp": 2200
+        },
+        {
+          "productId": "prod-15",
+          "productName": "Aashirvaad Shudh Chakki Atta 10kg",
+          "distributorId": "dist-3",
+          "quantity": 11,
+          "unit": "पैकेट (Packet)",
+          "wholesalePrice": 385,
+          "mrp": 420
+        },
+        {
+          "productId": "prod-16",
+          "productName": "Surf Excel Easy Wash 1kg",
+          "distributorId": "dist-4",
+          "quantity": 16,
+          "unit": "पेटी (Carton/Box)",
+          "wholesalePrice": 1540,
+          "mrp": 1750
+        },
+        {
+          "productId": "prod-17",
+          "productName": "Lifebuoy Total Soap 125g (Pack of 4)",
+          "distributorId": "dist-4",
+          "quantity": 9,
+          "unit": "पेटी (Carton/Box)",
+          "wholesalePrice": 1120,
+          "mrp": 1280
+        },
+        {
+          "productId": "prod-18",
+          "productName": "Vim Bar Lemon ₹10",
+          "distributorId": "dist-4",
+          "quantity": 8,
+          "unit": "पेटी (Carton/Box)",
+          "wholesalePrice": 650,
+          "mrp": 750
+        },
+        {
+          "productId": "prod-19",
+          "productName": "Colgate Strong Teeth 100g",
+          "distributorId": "dist-4",
+          "quantity": 16,
+          "unit": "दर्जन (Dozen)",
+          "wholesalePrice": 690,
+          "mrp": 780
+        },
+        {
+          "productId": "prod-20",
+          "productName": "Tata Tea Premium 250g Pouch",
+          "distributorId": "dist-5",
+          "quantity": 13,
+          "unit": "दर्जन (Dozen)",
+          "wholesalePrice": 1420,
+          "mrp": 1560
+        },
+        {
+          "productId": "prod-21",
+          "productName": "Wagh Bakri Chai 500g Box",
+          "distributorId": "dist-5",
+          "quantity": 6,
+          "unit": "पेटी (Carton/Box)",
+          "wholesalePrice": 2850,
+          "mrp": 3100
+        },
+        {
+          "productId": "prod-22",
+          "productName": "Amul Taaza Milk 500ml Pouch",
+          "distributorId": "dist-5",
+          "quantity": 15,
+          "unit": "पेटी (Carton/Box)",
+          "wholesalePrice": 590,
+          "mrp": 650
+        }
+      ],
+      "orders": [],
+      "shopProfile": {
+        "shopName": "श्री गणेश किराना एवं जनरल स्टोर",
+        "ownerName": "राजेश कुमार गुप्ता",
+        "phone": "9876501234",
+        "address": "दुकान नं. 12, मुख्य बाजार, चौक, कानपुर (उ.प्र.)",
+        "gstNumber": "",
+        "defaultOrderMessage": "कृपया यह सामान कल सुबह 11:00 बजे तक दुकान पर भिजवा दें। बिल साथ भेजें।"
+      },
+      "updatedAt": 1794842353572
+    }
+  }
+}

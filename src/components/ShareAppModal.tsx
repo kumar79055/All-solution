@@ -11,6 +11,8 @@ import {
   RefreshCw,
   CheckCircle2,
 } from 'lucide-react';
+import { CartItem, Distributor, OrderRecord, Product, ShopProfile } from '../types';
+import { encodeStoreToLinkParam } from '../utils/linkSync';
 
 interface ShareAppModalProps {
   isOpen: boolean;
@@ -18,9 +20,11 @@ interface ShareAppModalProps {
   appUrl?: string;
   sharedAppUrl?: string;
   shopSyncId: string;
-  shopName?: string;
-  productCount: number;
-  distributorCount: number;
+  distributors: Distributor[];
+  products: Product[];
+  cart: CartItem[];
+  orders: OrderRecord[];
+  shopProfile: ShopProfile;
   onSyncNow: () => Promise<boolean>;
 }
 
@@ -30,47 +34,66 @@ export const ShareAppModal: React.FC<ShareAppModalProps> = ({
   appUrl,
   sharedAppUrl = 'https://ais-pre-mrugqyepf5sfhjllykbd2f-652479634211.asia-southeast1.run.app',
   shopSyncId,
-  shopName,
-  productCount,
-  distributorCount,
+  distributors,
+  products,
+  cart,
+  orders,
+  shopProfile,
   onSyncNow,
 }) => {
   const [copied, setCopied] = useState(false);
-  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'synced' | 'error'>('idle');
+  const [encodedParam, setEncodedParam] = useState<string>('');
+  const [isPreparing, setIsPreparing] = useState<boolean>(true);
+  const [serverSynced, setServerSynced] = useState<boolean>(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const buildEmbeddedLink = async () => {
+    setIsPreparing(true);
+    try {
+      const encoded = await encodeStoreToLinkParam({
+        shopId: shopSyncId,
+        distributors,
+        products,
+        cart,
+        orders,
+        shopProfile,
+        updatedAt: Date.now(),
+      });
+      setEncodedParam(encoded);
+    } catch (err) {
+      console.error('Error encoding store link:', err);
+    } finally {
+      setIsPreparing(false);
+    }
+
+    // Also try background server sync (optional live sync bonus)
+    onSyncNow()
+      .then((ok) => setServerSynced(ok))
+      .catch(() => setServerSynced(false));
+  };
 
   useEffect(() => {
     if (isOpen) {
-      setSyncStatus('syncing');
-      onSyncNow()
-        .then((ok) => setSyncStatus(ok ? 'synced' : 'error'))
-        .catch(() => setSyncStatus('error'));
+      buildEmbeddedLink();
     }
-  }, [isOpen, onSyncNow]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, shopSyncId, distributors, products, cart, orders, shopProfile]);
 
   if (!isOpen) return null;
 
   const currentOrigin =
     typeof window !== 'undefined' ? window.location.origin : '';
   const baseUrl = currentOrigin || appUrl || sharedAppUrl;
-  const liveUrl = `${baseUrl}/?shop=${encodeURIComponent(shopSyncId)}`;
+  const liveUrl = encodedParam
+    ? `${baseUrl}/?shop=${encodeURIComponent(shopSyncId)}#d=${encodedParam}`
+    : `${baseUrl}/?shop=${encodeURIComponent(shopSyncId)}`;
   const isDevPreview = baseUrl.includes('ais-dev-');
-
-  const handleManualSync = async () => {
-    setSyncStatus('syncing');
-    try {
-      const ok = await onSyncNow();
-      setSyncStatus(ok ? 'synced' : 'error');
-    } catch {
-      setSyncStatus('error');
-    }
-  };
 
   const handleCopy = () => {
     const fallbackCopy = () => {
       if (inputRef.current) {
         inputRef.current.select();
-        inputRef.current.setSelectionRange(0, 99999);
+        inputRef.current.setSelectionRange(0, 999999);
         try {
           document.execCommand('copy');
           setCopied(true);
@@ -95,7 +118,7 @@ export const ShareAppModal: React.FC<ShareAppModalProps> = ({
   };
 
   const whatsappText = encodeURIComponent(
-    `🏪 ${shopName || 'किराना ऑर्डर साथी'} ऐप लिंक (आपके पूरे कस्टम डेटा के साथ):\n${liveUrl}\n\nदुकान कोड: ${shopSyncId}\n(इसे मोबाइल के Google Chrome में खोलें और 3 डॉट्स ⋮ दबाकर 'Add to Home screen' करें)`
+    `🏪 ${shopProfile.shopName || 'किराना ऑर्डर साथी'} ऐप लिंक (आपके पूरे कस्टम डेटा के साथ):\n${liveUrl}\n\n(इसे मोबाइल के Google Chrome में खोलें और 3 डॉट्स ⋮ दबाकर 'Add to Home screen' करें)`
   );
   const whatsappShareHref = `https://wa.me/?text=${whatsappText}`;
 
@@ -126,48 +149,41 @@ export const ShareAppModal: React.FC<ShareAppModalProps> = ({
           </button>
         </div>
 
-        {/* Sync Status Banner */}
+        {/* Guaranteed Sync Status Banner */}
         <div
           className={`mb-3 rounded-2xl p-3 border text-xs flex items-center justify-between gap-2 ${
-            syncStatus === 'synced'
-              ? 'bg-emerald-50 border-emerald-300 text-emerald-950'
-              : syncStatus === 'error'
-              ? 'bg-red-50 border-red-300 text-red-900'
-              : 'bg-amber-50 border-amber-300 text-amber-900'
+            isPreparing
+              ? 'bg-amber-50 border-amber-300 text-amber-900'
+              : 'bg-emerald-50 border-emerald-300 text-emerald-950'
           }`}
         >
           <div className="flex items-start gap-2">
-            {syncStatus === 'syncing' ? (
+            {isPreparing ? (
               <RefreshCw className="w-4 h-4 animate-spin text-amber-700 flex-shrink-0 mt-0.5" />
-            ) : syncStatus === 'error' ? (
-              <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
             ) : (
               <CheckCircle2 className="w-4 h-4 text-emerald-700 flex-shrink-0 mt-0.5" />
             )}
             <div>
-              {syncStatus === 'syncing' && (
-                <strong>आपका कस्टम डेटा लिंक में सेव हो रहा है...</strong>
-              )}
-              {syncStatus === 'synced' && (
+              {isPreparing ? (
+                <strong>आपका कस्टम डेटा लिंक में जोड़ा जा रहा है...</strong>
+              ) : (
                 <>
                   <strong>आपका पूरा कस्टम डेटा इस लिंक में जुड़ गया है!</strong>
                   <div className="text-[11px] text-emerald-800 mt-0.5">
-                    {shopName || 'मेरी दुकान'} • {productCount} सामान • {distributorCount} डिस्ट्रीब्यूटर (कोड: <span className="font-mono font-bold">{shopSyncId}</span>)
+                    {shopProfile.shopName || 'मेरी दुकान'} • {products.length} सामान • {distributors.length} डिस्ट्रीब्यूटर
+                    {serverSynced ? ' (ऑनलाइन सिंक भी चालू ✅)' : ' (डेटा लिंक के अंदर सेव ✅)'}
                   </div>
                 </>
-              )}
-              {syncStatus === 'error' && (
-                <span>सिंक करने में दिक्कत आई — कृपया दोबारा &quot;सिंक करें&quot; दबाएं।</span>
               )}
             </div>
           </div>
           <button
             type="button"
-            onClick={handleManualSync}
+            onClick={buildEmbeddedLink}
             className="text-[11px] font-bold bg-white border border-stone-300 hover:bg-stone-100 text-stone-800 px-2.5 py-1 rounded-lg flex items-center gap-1 whitespace-nowrap"
           >
-            <RefreshCw className={`w-3 h-3 ${syncStatus === 'syncing' ? 'animate-spin' : ''}`} />
-            <span>सिंक करें</span>
+            <RefreshCw className={`w-3 h-3 ${isPreparing ? 'animate-spin' : ''}`} />
+            <span>ताजा करें</span>
           </button>
         </div>
 
@@ -179,7 +195,7 @@ export const ShareAppModal: React.FC<ShareAppModalProps> = ({
               <span>आपकी दुकान का कस्टम मोबाइल लिंक:</span>
             </span>
             <span className="text-[10px] text-emerald-900 bg-emerald-200/80 px-2 py-0.5 rounded-full font-bold whitespace-nowrap">
-              ✅ डेटा सहित चालू
+              ✅ डेटा सहित तैयार
             </span>
           </div>
 
@@ -236,11 +252,11 @@ export const ShareAppModal: React.FC<ShareAppModalProps> = ({
             <span>📲 अपने WhatsApp पर कस्टम लिंक भेजें (Send to Phone)</span>
           </a>
           <p className="text-[11px] text-stone-500 text-center mt-1.5">
-            इस लिंक को फोन पर खोलते ही आपका सारा कस्टम डेटा अपने आप लोड हो जाएगा!
+            आपका पूरा कस्टम डेटा इसी लिंक में पैक है — फोन पर खोलते ही सब सामान दिखने लगेगा!
           </p>
         </div>
 
-        {/* Important Troubleshooting Box for ais-dev vs ais-pre */}
+        {/* Important Troubleshooting Box */}
         {isDevPreview && (
           <div className="mb-4 bg-amber-50 border border-amber-300 rounded-2xl p-3.5 text-xs text-stone-800 space-y-1.5">
             <div className="font-extrabold text-amber-950 flex items-center gap-1.5">

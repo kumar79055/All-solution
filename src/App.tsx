@@ -13,6 +13,7 @@ import {
   UserRole 
 } from './types';
 import { Storage } from './utils/storage';
+import { decodeStoreFromHash } from './utils/linkSync';
 import { Header } from './components/Header';
 import { CartCheckout } from './components/CartCheckout';
 import { ProductList } from './components/ProductList';
@@ -181,6 +182,25 @@ export default function App() {
         const params = new URLSearchParams(window.location.search);
         const urlShopId = params.get('shop')?.trim().toUpperCase();
         const localUpdatedAt = Storage.getSyncUpdatedAt();
+
+        // 1. First check if full customized data is embedded directly inside URL hash (#d=...)
+        if (window.location.hash && window.location.hash.includes('d=')) {
+          setIsSyncLoading(true);
+          const hashData = await decodeStoreFromHash(window.location.hash);
+          if (cancelled) return;
+
+          if (hashData) {
+            applyServerStoreData(hashData);
+            showToast(`✅ "${hashData.shopProfile?.shopName || 'दुकान'}" का पूरा कस्टम डेटा (${hashData.products?.length || 0} सामान) लोड हो गया!`);
+            try {
+              const cleanUrl = `/?shop=${encodeURIComponent(hashData.shopId)}`;
+              window.history.replaceState(null, '', cleanUrl);
+            } catch {}
+            // Also mirror to server in background for live sync
+            Storage.pushToServer(hashData);
+            return;
+          }
+        }
 
         if (urlShopId) {
           setIsSyncLoading(true);
@@ -783,9 +803,11 @@ export default function App() {
         appUrl={typeof window !== 'undefined' ? window.location.origin : 'https://ais-dev-mrugqyepf5sfhjllykbd2f-652479634211.asia-southeast1.run.app'}
         sharedAppUrl="https://ais-pre-mrugqyepf5sfhjllykbd2f-652479634211.asia-southeast1.run.app"
         shopSyncId={shopSyncId}
-        shopName={shopProfile.shopName}
-        productCount={products.length}
-        distributorCount={distributors.length}
+        distributors={distributors}
+        products={products}
+        cart={cart}
+        orders={orders}
+        shopProfile={shopProfile}
         onSyncNow={handleSyncNow}
       />
 

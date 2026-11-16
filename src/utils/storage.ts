@@ -79,6 +79,8 @@ export const Storage = {
         body: JSON.stringify(payload)
       });
       if (!res.ok) return false;
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) return false;
       const json = await res.json();
       if (json.success && json.updatedAt) {
         this.setSyncUpdatedAt(json.updatedAt);
@@ -95,6 +97,8 @@ export const Storage = {
     try {
       const res = await fetch(`/api/sync/${encodeURIComponent(shopId)}`);
       if (!res.ok) return null;
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) return null;
       const json = await res.json();
       if (json.success && json.data) {
         return json.data as SyncPayload;
