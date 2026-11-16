@@ -13,7 +13,7 @@ import {
   UserRole 
 } from './types';
 import { Storage } from './utils/storage';
-import { decodeStoreFromHash } from './utils/linkSync';
+import { decodeStoreFromUrl } from './utils/linkSync';
 import { Header } from './components/Header';
 import { CartCheckout } from './components/CartCheckout';
 import { ProductList } from './components/ProductList';
@@ -181,23 +181,32 @@ export default function App() {
       try {
         const params = new URLSearchParams(window.location.search);
         const urlShopId = params.get('shop')?.trim().toUpperCase();
+        const urlToken = params.get('t')?.trim() || '';
+        const lastToken = Storage.getLastAppliedLinkToken();
         const localUpdatedAt = Storage.getSyncUpdatedAt();
+        const isFreshLinkToken = Boolean(urlToken && urlToken !== lastToken);
 
-        // 1. First check if full customized data is embedded directly inside URL hash (#d=...)
-        if (window.location.hash && window.location.hash.includes('d=')) {
+        // 1. Check if full customized data is embedded directly in URL (?d=... or #d=...)
+        const hasEmbeddedData = Boolean(
+          params.get('d') || (window.location.hash && window.location.hash.includes('d='))
+        );
+        if (hasEmbeddedData) {
           setIsSyncLoading(true);
-          const hashData = await decodeStoreFromHash(window.location.hash);
+          const urlData = await decodeStoreFromUrl(window.location.search, window.location.hash);
           if (cancelled) return;
 
-          if (hashData) {
-            applyServerStoreData(hashData);
-            showToast(`✅ "${hashData.shopProfile?.shopName || 'दुकान'}" का पूरा कस्टम डेटा (${hashData.products?.length || 0} सामान) लोड हो गया!`);
+          if (urlData) {
+            if (!urlToken || isFreshLinkToken || prevLocalShopIdRef.current !== urlData.shopId) {
+              applyServerStoreData(urlData);
+              if (urlToken) Storage.setLastAppliedLinkToken(urlToken);
+              showToast(`✅ "${urlData.shopProfile?.shopName || 'दुकान'}" का पूरा कस्टम डेटा (${urlData.products?.length || 0} सामान) लोड हो गया!`);
+              // Mirror to server in background for live sync
+              Storage.pushToServer(urlData);
+            }
             try {
-              const cleanUrl = `/?shop=${encodeURIComponent(hashData.shopId)}`;
+              const cleanUrl = `/?shop=${encodeURIComponent(urlData.shopId)}`;
               window.history.replaceState(null, '', cleanUrl);
             } catch {}
-            // Also mirror to server in background for live sync
-            Storage.pushToServer(hashData);
             return;
           }
         }
@@ -209,8 +218,9 @@ export default function App() {
 
           if (serverData) {
             const isDifferentShop = prevLocalShopIdRef.current !== serverData.shopId;
-            if (isDifferentShop || (serverData.updatedAt || 0) >= localUpdatedAt) {
+            if (isFreshLinkToken || isDifferentShop || (serverData.updatedAt || 0) >= localUpdatedAt) {
               applyServerStoreData(serverData);
+              if (urlToken) Storage.setLastAppliedLinkToken(urlToken);
               showToast(`✅ "${serverData.shopProfile?.shopName || 'दुकान'}" का कस्टम डेटा (${serverData.products?.length || 0} सामान) लोड हो गया!`);
             } else {
               // Local device with same shopId has newer edits -> push them up

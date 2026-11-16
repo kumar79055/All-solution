@@ -71,10 +71,25 @@ export const Storage = {
     } catch {}
   },
 
+  getLastAppliedLinkToken(): string | null {
+    try {
+      return localStorage.getItem('kirana_last_link_token_v1');
+    } catch {
+      return null;
+    }
+  },
+
+  setLastAppliedLinkToken(token: string): void {
+    try {
+      localStorage.setItem('kirana_last_link_token_v1', token);
+    } catch {}
+  },
+
   async pushToServer(payload: SyncPayload): Promise<boolean> {
     try {
       const res = await fetch('/api/sync', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
@@ -95,7 +110,9 @@ export const Storage = {
 
   async pullFromServer(shopId: string): Promise<SyncPayload | null> {
     try {
-      const res = await fetch(`/api/sync/${encodeURIComponent(shopId)}`);
+      const res = await fetch(`/api/sync/${encodeURIComponent(shopId)}`, {
+        credentials: 'include'
+      });
       if (!res.ok) return null;
       const contentType = res.headers.get('content-type') || '';
       if (!contentType.includes('application/json')) return null;

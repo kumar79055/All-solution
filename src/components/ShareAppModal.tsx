@@ -43,12 +43,15 @@ export const ShareAppModal: React.FC<ShareAppModalProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const [encodedParam, setEncodedParam] = useState<string>('');
+  const [linkToken, setLinkToken] = useState<string>(() => String(Date.now()));
   const [isPreparing, setIsPreparing] = useState<boolean>(true);
   const [serverSynced, setServerSynced] = useState<boolean>(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const buildEmbeddedLink = async () => {
     setIsPreparing(true);
+    const ts = Date.now();
+    setLinkToken(String(ts));
     try {
       const encoded = await encodeStoreToLinkParam({
         shopId: shopSyncId,
@@ -57,7 +60,7 @@ export const ShareAppModal: React.FC<ShareAppModalProps> = ({
         cart,
         orders,
         shopProfile,
-        updatedAt: Date.now(),
+        updatedAt: ts,
       });
       setEncodedParam(encoded);
     } catch (err) {
@@ -66,7 +69,7 @@ export const ShareAppModal: React.FC<ShareAppModalProps> = ({
       setIsPreparing(false);
     }
 
-    // Also try background server sync (optional live sync bonus)
+    // Also mirror to server in background for live 2-way updates
     onSyncNow()
       .then((ok) => setServerSynced(ok))
       .catch(() => setServerSynced(false));
@@ -84,9 +87,17 @@ export const ShareAppModal: React.FC<ShareAppModalProps> = ({
   const currentOrigin =
     typeof window !== 'undefined' ? window.location.origin : '';
   const baseUrl = currentOrigin || appUrl || sharedAppUrl;
-  const liveUrl = encodedParam
-    ? `${baseUrl}/?shop=${encodeURIComponent(shopSyncId)}#d=${encodedParam}`
-    : `${baseUrl}/?shop=${encodeURIComponent(shopSyncId)}`;
+
+  // CRITICAL: Keep d= inside query string when <= 3200 chars so AI Studio's auth redirect
+  // (/__cookie_check.html?return_url=...) preserves the full customized data on mobile!
+  let liveUrl = `${baseUrl}/?shop=${encodeURIComponent(shopSyncId)}&t=${encodeURIComponent(linkToken)}`;
+  if (encodedParam) {
+    if (encodedParam.length <= 3200) {
+      liveUrl += `&d=${encodedParam}`;
+    } else {
+      liveUrl += `#d=${encodedParam}`;
+    }
+  }
   const isDevPreview = baseUrl.includes('ais-dev-');
 
   const handleCopy = () => {
@@ -118,7 +129,7 @@ export const ShareAppModal: React.FC<ShareAppModalProps> = ({
   };
 
   const whatsappText = encodeURIComponent(
-    `🏪 ${shopProfile.shopName || 'किराना ऑर्डर साथी'} ऐप लिंक (आपके पूरे कस्टम डेटा के साथ):\n${liveUrl}\n\n(इसे मोबाइल के Google Chrome में खोलें और 3 डॉट्स ⋮ दबाकर 'Add to Home screen' करें)`
+    `🏪 ${shopProfile.shopName || 'किराना ऑर्डर साथी'} ऐप लिंक (आपके कस्टम डेटा सहित):\n${liveUrl}\n\n(इसे मोबाइल के Google Chrome में खोलें और 3 डॉट्स ⋮ दबाकर 'Add to Home screen' करें)`
   );
   const whatsappShareHref = `https://wa.me/?text=${whatsappText}`;
 
@@ -171,7 +182,8 @@ export const ShareAppModal: React.FC<ShareAppModalProps> = ({
                   <strong>आपका पूरा कस्टम डेटा इस लिंक में जुड़ गया है!</strong>
                   <div className="text-[11px] text-emerald-800 mt-0.5">
                     {shopProfile.shopName || 'मेरी दुकान'} • {products.length} सामान • {distributors.length} डिस्ट्रीब्यूटर
-                    {serverSynced ? ' (ऑनलाइन सिंक भी चालू ✅)' : ' (डेटा लिंक के अंदर सेव ✅)'}
+                    {cart.length > 0 ? ` • कार्ट: ${cart.length}` : ''}
+                    {serverSynced ? ' (ऑनलाइन सिंक चालू ✅)' : ''}
                   </div>
                 </>
               )}
