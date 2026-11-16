@@ -594,7 +594,8 @@ export default function App() {
       <ShareAppModal
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
-        appUrl="https://ais-pre-mrugqyepf5sfhjllykbd2f-652479634211.asia-southeast1.run.app"
+        appUrl={typeof window !== 'undefined' ? window.location.origin : 'https://ais-dev-mrugqyepf5sfhjllykbd2f-652479634211.asia-southeast1.run.app'}
+        sharedAppUrl="https://ais-pre-mrugqyepf5sfhjllykbd2f-652479634211.asia-southeast1.run.app"
       />
 
       {/* Floating Action Buttons Group (Desktop & Tablet) */}

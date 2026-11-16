@@ -1,6 +1,6 @@
 import React from 'react';
 import { Distributor, CartItem, ShopProfile } from '../types';
-import { Printer, Copy, Check, X, MessageCircle, FileText, Store } from 'lucide-react';
+import { Printer, Copy, Check, X, MessageCircle, FileText, Store, UserCheck, Building2 } from 'lucide-react';
 import { generateWhatsAppOrderMessage, createWhatsAppUrl } from '../utils/whatsapp';
 
 interface OrderSlipModalProps {
@@ -58,15 +58,17 @@ export const OrderSlipModal: React.FC<OrderSlipModalProps> = ({
     });
   };
 
-  const handleWhatsApp = () => {
+  const getWhatsAppHref = (target: 'distributor' | 'salesman') => {
+    const isSalesman = target === 'salesman' && Boolean(distributor.salesmanPhone);
+    const phone = isSalesman ? distributor.salesmanPhone! : distributor.whatsappNumber;
     const msg = generateWhatsAppOrderMessage({
       distributor,
       items,
       shopProfile,
-      customNote
+      customNote,
+      targetRecipient: isSalesman ? 'salesman' : 'distributor'
     });
-    const url = createWhatsAppUrl(distributor.whatsappNumber, msg);
-    window.open(url, '_blank');
+    return createWhatsAppUrl(phone, msg);
   };
 
   return (
@@ -129,8 +131,13 @@ export const OrderSlipModal: React.FC<OrderSlipModalProps> = ({
               फर्म: {distributor.companyName}
             </div>
             <div className="font-mono text-emerald-800 font-semibold">
-              WhatsApp: {distributor.whatsappNumber}
+              डिस्ट्रीब्यूटर WA: {distributor.whatsappNumber}
             </div>
+            {distributor.salesmanPhone && (
+              <div className="font-mono text-blue-800 font-semibold">
+                सेल्समैन ({distributor.salesmanName || 'बुकर'}): {distributor.salesmanPhone}
+              </div>
+            )}
           </div>
 
           {/* Items Table */}
@@ -211,22 +218,36 @@ export const OrderSlipModal: React.FC<OrderSlipModalProps> = ({
             )}
           </button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={handlePrint}
-              className="flex items-center gap-1.5 text-xs font-bold bg-stone-800 hover:bg-stone-900 text-white px-4 py-2 rounded-xl shadow transition"
+              className="flex items-center gap-1.5 text-xs font-bold bg-stone-800 hover:bg-stone-900 text-white px-3.5 py-2 rounded-xl shadow transition"
             >
               <Printer className="w-3.5 h-3.5" />
-              <span>प्रिंट पर्चा (Print)</span>
+              <span>प्रिंट पर्चा</span>
             </button>
 
-            <button
-              onClick={handleWhatsApp}
-              className="flex items-center gap-1.5 text-xs font-extrabold bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl shadow transition"
+            <a
+              href={getWhatsAppHref('distributor')}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-xs font-extrabold bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl shadow transition"
             >
-              <MessageCircle className="w-4 h-4 fill-white" />
-              <span>WhatsApp पर भेजें</span>
-            </button>
+              <Building2 className="w-3.5 h-3.5" />
+              <span>डिस्ट्रीब्यूटर WA</span>
+            </a>
+
+            {distributor.salesmanPhone && (
+              <a
+                href={getWhatsAppHref('salesman')}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 text-xs font-extrabold bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-xl shadow transition"
+              >
+                <UserCheck className="w-3.5 h-3.5" />
+                <span>सेल्समैन WA</span>
+              </a>
+            )}
           </div>
         </div>
       </div>

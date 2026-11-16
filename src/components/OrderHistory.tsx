@@ -169,7 +169,15 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({
                           {dateFormatted}, {timeFormatted}
                         </span>
                         <span>• सप्लायर: <strong>{order.distributorName}</strong></span>
-                        <span className="font-mono text-emerald-700">({order.distributorPhone})</span>
+                        {order.recipientType === 'salesman' ? (
+                          <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-800 border border-blue-200 px-2 py-0.5 rounded-md font-semibold text-[11px]">
+                            🚶 सेल्समैन: {order.recipientName || 'बुकर'} ({order.recipientPhone || order.distributorPhone})
+                          </span>
+                        ) : (
+                          <span className="font-mono text-emerald-700">
+                            🏢 डिस्ट्रीब्यूटर ({order.recipientPhone || order.distributorPhone})
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
