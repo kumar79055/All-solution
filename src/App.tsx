@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { 
   Distributor, 
   Product, 
@@ -26,9 +26,24 @@ import { VoiceAssistantModal } from './components/VoiceAssistantModal';
 import { WeightCalculatorModal } from './components/WeightCalculatorModal';
 import { PinModal } from './components/PinModal';
 import { ShareAppModal } from './components/ShareAppModal';
-import { CheckCircle2, MessageCircle, AlertTriangle, Sparkles, Mic, Scale, Smartphone } from 'lucide-react';
+import { CheckCircle2, MessageCircle, AlertTriangle, Sparkles, Mic, Scale, Smartphone, RefreshCw } from 'lucide-react';
 
 export default function App() {
+  // Check whether this device already had stored data BEFORE initializing defaults
+  const hadLocalDataRef = useRef<boolean>(Storage.hasExistingLocalStore());
+  const prevLocalShopIdRef = useRef<string | null>(Storage.getShopSyncId());
+  const isHydratingRef = useRef<boolean>(true);
+  const skipNextPushRef = useRef<boolean>(false);
+
+  const [shopSyncId, setShopSyncId] = useState<string>(() => Storage.getOrCreateShopSyncId());
+  const [isSyncLoading, setIsSyncLoading] = useState<boolean>(() => {
+    try {
+      return Boolean(new URLSearchParams(window.location.search).get('shop'));
+    } catch {
+      return false;
+    }
+  });
+
   // App Core States
   const [distributors, setDistributors] = useState<Distributor[]>(() => Storage.getDistributors());
   const [products, setProducts] = useState<Product[]>(() => Storage.getProducts());
@@ -100,7 +115,7 @@ export default function App() {
     }, 2800);
   };
 
-  // Sync state changes with Storage
+  // Sync state changes with local Storage
   useEffect(() => {
     Storage.saveDistributors(distributors);
   }, [distributors]);
@@ -120,6 +135,169 @@ export default function App() {
   useEffect(() => {
     Storage.saveShopProfile(shopProfile);
   }, [shopProfile]);
+
+  // Helper to apply pulled server payload into local state & storage
+  const applyServerStoreData = (data: {
+    shopId: string;
+    distributors: Distributor[];
+    products: Product[];
+    cart: CartItem[];
+    orders: OrderRecord[];
+    shopProfile: ShopProfile;
+    updatedAt: number;
+  }) => {
+    skipNextPushRef.current = true;
+    if (Array.isArray(data.distributors) && data.distributors.length > 0) {
+      setDistributors(data.distributors);
+      Storage.saveDistributors(data.distributors);
+    }
+    if (Array.isArray(data.products) && data.products.length > 0) {
+      setProducts(data.products);
+      Storage.saveProducts(data.products);
+    }
+    if (Array.isArray(data.cart)) {
+      setCart(data.cart);
+      Storage.saveCart(data.cart);
+    }
+    if (Array.isArray(data.orders)) {
+      setOrders(data.orders);
+      Storage.saveOrderHistory(data.orders);
+    }
+    if (data.shopProfile && data.shopProfile.shopName) {
+      setShopProfile(data.shopProfile);
+      Storage.saveShopProfile(data.shopProfile);
+    }
+    Storage.setShopSyncId(data.shopId);
+    Storage.setSyncUpdatedAt(data.updatedAt || Date.now());
+    setShopSyncId(data.shopId);
+  };
+
+  // On startup: check ?shop=CODE in URL or hydrate fresh device from server
+  useEffect(() => {
+    let cancelled = false;
+
+    const initSync = async () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const urlShopId = params.get('shop')?.trim().toUpperCase();
+        const localUpdatedAt = Storage.getSyncUpdatedAt();
+
+        if (urlShopId) {
+          setIsSyncLoading(true);
+          const serverData = await Storage.pullFromServer(urlShopId);
+          if (cancelled) return;
+
+          if (serverData) {
+            const isDifferentShop = prevLocalShopIdRef.current !== serverData.shopId;
+            if (isDifferentShop || (serverData.updatedAt || 0) >= localUpdatedAt) {
+              applyServerStoreData(serverData);
+              showToast(`✅ "${serverData.shopProfile?.shopName || 'दुकान'}" का कस्टम डेटा (${serverData.products?.length || 0} सामान) लोड हो गया!`);
+            } else {
+              // Local device with same shopId has newer edits -> push them up
+              await Storage.pushToServer({
+                shopId: urlShopId,
+                distributors,
+                products,
+                cart,
+                orders,
+                shopProfile,
+                updatedAt: localUpdatedAt || Date.now(),
+              });
+            }
+          } else if (!hadLocalDataRef.current) {
+            // Fallback to latest store if urlShopId not found on fresh device
+            const latestData = await Storage.pullFromServer('latest');
+            if (!cancelled && latestData) {
+              applyServerStoreData(latestData);
+              showToast(`✅ दुकान का कस्टम डेटा लोड हो गया!`);
+            }
+          } else {
+            // Desktop opened with ?shop=ID not yet saved -> adopt and push local data
+            Storage.setShopSyncId(urlShopId);
+            setShopSyncId(urlShopId);
+            await Storage.pushToServer({
+              shopId: urlShopId,
+              distributors,
+              products,
+              cart,
+              orders,
+              shopProfile,
+              updatedAt: Date.now(),
+            });
+          }
+        } else if (!hadLocalDataRef.current) {
+          // Brand new device opening plain URL without ?shop= -> try loading latest customized store
+          const latestData = await Storage.pullFromServer('latest');
+          if (!cancelled && latestData) {
+            applyServerStoreData(latestData);
+            showToast(`✅ आपकी दुकान का कस्टम डेटा लोड हो गया!`);
+          }
+        } else {
+          // Desktop with existing local customized data -> ensure server has latest snapshot
+          const currentId = Storage.getOrCreateShopSyncId();
+          await Storage.pushToServer({
+            shopId: currentId,
+            distributors,
+            products,
+            cart,
+            orders,
+            shopProfile,
+            updatedAt: localUpdatedAt || Date.now(),
+          });
+        }
+      } finally {
+        if (!cancelled) {
+          isHydratingRef.current = false;
+          setIsSyncLoading(false);
+        }
+      }
+    };
+
+    initSync();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Auto-sync any edits to server so Phone & Desktop stay updated
+  useEffect(() => {
+    if (isHydratingRef.current) return;
+    if (skipNextPushRef.current) {
+      skipNextPushRef.current = false;
+      return;
+    }
+
+    const nowTs = Date.now();
+    Storage.setSyncUpdatedAt(nowTs);
+    const timer = setTimeout(() => {
+      Storage.pushToServer({
+        shopId: shopSyncId,
+        distributors,
+        products,
+        cart,
+        orders,
+        shopProfile,
+        updatedAt: nowTs,
+      });
+    }, 450);
+
+    return () => clearTimeout(timer);
+  }, [distributors, products, cart, orders, shopProfile, shopSyncId]);
+
+  const handleSyncNow = useCallback(async (): Promise<boolean> => {
+    const nowTs = Date.now();
+    Storage.setSyncUpdatedAt(nowTs);
+    return Storage.pushToServer({
+      shopId: shopSyncId,
+      distributors,
+      products,
+      cart,
+      orders,
+      shopProfile,
+      updatedAt: nowTs,
+    });
+  }, [shopSyncId, distributors, products, cart, orders, shopProfile]);
 
   // Derived calculations
   const lowStockCount = useMemo(() => {
@@ -369,6 +547,14 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-stone-100/70 text-stone-900 font-sans flex flex-col selection:bg-emerald-200">
+      {/* Sync Loading Indicator */}
+      {isSyncLoading && (
+        <div className="bg-amber-400 text-stone-950 text-xs font-extrabold py-1.5 px-4 text-center flex items-center justify-center gap-2 shadow-xs">
+          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+          <span>आपकी दुकान का कस्टम डेटा लोड हो रहा है...</span>
+        </div>
+      )}
+
       {/* Toast Notification Banner */}
       {toastMessage && (
         <div className="fixed bottom-5 right-5 z-50 bg-stone-900 text-white text-xs sm:text-sm font-bold px-4 py-3 rounded-2xl shadow-2xl border border-stone-700 flex items-center gap-2.5 animate-in slide-in-from-bottom-5">
@@ -596,6 +782,11 @@ export default function App() {
         onClose={() => setIsShareModalOpen(false)}
         appUrl={typeof window !== 'undefined' ? window.location.origin : 'https://ais-dev-mrugqyepf5sfhjllykbd2f-652479634211.asia-southeast1.run.app'}
         sharedAppUrl="https://ais-pre-mrugqyepf5sfhjllykbd2f-652479634211.asia-southeast1.run.app"
+        shopSyncId={shopSyncId}
+        shopName={shopProfile.shopName}
+        productCount={products.length}
+        distributorCount={distributors.length}
+        onSyncNow={handleSyncNow}
       />
 
       {/* Floating Action Buttons Group (Desktop & Tablet) */}

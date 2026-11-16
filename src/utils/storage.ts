@@ -6,10 +6,106 @@ const KEYS = {
   PRODUCTS: 'kirana_products_v1',
   CART: 'kirana_cart_v1',
   ORDERS: 'kirana_order_history_v1',
-  SHOP: 'kirana_shop_profile_v1'
+  SHOP: 'kirana_shop_profile_v1',
+  SHOP_SYNC_ID: 'kirana_shop_sync_id_v1',
+  SYNC_UPDATED_AT: 'kirana_sync_updated_at_v1'
 };
 
+export interface SyncPayload {
+  shopId: string;
+  distributors: Distributor[];
+  products: Product[];
+  cart: CartItem[];
+  orders: OrderRecord[];
+  shopProfile: ShopProfile;
+  updatedAt: number;
+}
+
 export const Storage = {
+  hasExistingLocalStore(): boolean {
+    try {
+      return Boolean(
+        localStorage.getItem(KEYS.PRODUCTS) ||
+        localStorage.getItem(KEYS.DISTRIBUTORS) ||
+        localStorage.getItem(KEYS.SHOP_SYNC_ID)
+      );
+    } catch {
+      return false;
+    }
+  },
+
+  getShopSyncId(): string | null {
+    try {
+      return localStorage.getItem(KEYS.SHOP_SYNC_ID);
+    } catch {
+      return null;
+    }
+  },
+
+  setShopSyncId(id: string): void {
+    try {
+      localStorage.setItem(KEYS.SHOP_SYNC_ID, id.trim().toUpperCase());
+    } catch {}
+  },
+
+  getOrCreateShopSyncId(): string {
+    const existing = this.getShopSyncId();
+    if (existing) return existing;
+    const generated = `KRN${Math.floor(1000 + Math.random() * 9000)}`;
+    this.setShopSyncId(generated);
+    return generated;
+  },
+
+  getSyncUpdatedAt(): number {
+    try {
+      const val = localStorage.getItem(KEYS.SYNC_UPDATED_AT);
+      return val ? Number(val) || 0 : 0;
+    } catch {
+      return 0;
+    }
+  },
+
+  setSyncUpdatedAt(ts: number): void {
+    try {
+      localStorage.setItem(KEYS.SYNC_UPDATED_AT, String(ts));
+    } catch {}
+  },
+
+  async pushToServer(payload: SyncPayload): Promise<boolean> {
+    try {
+      const res = await fetch('/api/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) return false;
+      const json = await res.json();
+      if (json.success && json.updatedAt) {
+        this.setSyncUpdatedAt(json.updatedAt);
+        return true;
+      }
+      return false;
+    } catch (e) {
+      console.error('Sync push error:', e);
+      return false;
+    }
+  },
+
+  async pullFromServer(shopId: string): Promise<SyncPayload | null> {
+    try {
+      const res = await fetch(`/api/sync/${encodeURIComponent(shopId)}`);
+      if (!res.ok) return null;
+      const json = await res.json();
+      if (json.success && json.data) {
+        return json.data as SyncPayload;
+      }
+      return null;
+    } catch (e) {
+      console.error('Sync pull error:', e);
+      return null;
+    }
+  },
+
   getDistributors(): Distributor[] {
     try {
       const data = localStorage.getItem(KEYS.DISTRIBUTORS);

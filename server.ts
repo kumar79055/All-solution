@@ -1,6 +1,7 @@
 import express from 'express';
 import { createServer as createViteServer } from 'vite';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import { GoogleGenAI, Type } from '@google/genai';
@@ -10,6 +11,53 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Persistent file store for syncing customized shop data across Desktop & Mobile
+const DATA_DIR = path.resolve(__dirname, 'data');
+const SYNC_FILE = path.join(DATA_DIR, 'kirana-sync.json');
+
+interface SyncStoreData {
+  shopId: string;
+  distributors: any[];
+  products: any[];
+  cart: any[];
+  orders: any[];
+  shopProfile: any;
+  updatedAt: number;
+}
+
+interface SyncDatabase {
+  lastShopId: string | null;
+  stores: Record<string, SyncStoreData>;
+}
+
+function loadSyncDatabase(): SyncDatabase {
+  try {
+    if (fs.existsSync(SYNC_FILE)) {
+      const raw = fs.readFileSync(SYNC_FILE, 'utf-8');
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object' && parsed.stores) {
+        return parsed;
+      }
+    }
+  } catch (err) {
+    console.error('Error loading sync database:', err);
+  }
+  return { lastShopId: null, stores: {} };
+}
+
+function saveSyncDatabase(db: SyncDatabase): void {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    fs.writeFileSync(SYNC_FILE, JSON.stringify(db, null, 2), 'utf-8');
+  } catch (err) {
+    console.error('Error saving sync database:', err);
+  }
+}
+
+let syncDb: SyncDatabase = loadSyncDatabase();
+
 async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT) || 3000;
@@ -18,6 +66,67 @@ async function startServer() {
   // Increase payload size for bill images (camera photos, receipts)
   app.use(express.json({ limit: '25mb' }));
   app.use(express.urlencoded({ extended: true, limit: '25mb' }));
+
+  // Sync Endpoint: Save customized store data for mobile/multi-device access
+  app.post('/api/sync', (req, res) => {
+    try {
+      const { shopId, distributors, products, cart, orders, shopProfile, updatedAt } = req.body;
+      if (!shopId || typeof shopId !== 'string') {
+        return res.status(400).json({ success: false, error: 'shopId is required' });
+      }
+      const cleanShopId = shopId.trim().toUpperCase();
+      const ts = typeof updatedAt === 'number' ? updatedAt : Date.now();
+
+      syncDb.stores[cleanShopId] = {
+        shopId: cleanShopId,
+        distributors: Array.isArray(distributors) ? distributors : [],
+        products: Array.isArray(products) ? products : [],
+        cart: Array.isArray(cart) ? cart : [],
+        orders: Array.isArray(orders) ? orders : [],
+        shopProfile: shopProfile || {},
+        updatedAt: ts,
+      };
+      syncDb.lastShopId = cleanShopId;
+      saveSyncDatabase(syncDb);
+
+      return res.json({
+        success: true,
+        shopId: cleanShopId,
+        updatedAt: ts,
+      });
+    } catch (err: any) {
+      console.error('Error in POST /api/sync:', err);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // Sync Endpoint: Retrieve customized store data by shopId (or 'latest')
+  app.get('/api/sync/:shopId', (req, res) => {
+    try {
+      const requestedId = String(req.params.shopId || '').trim();
+      let record: SyncStoreData | undefined;
+
+      if (requestedId.toLowerCase() === 'latest') {
+        if (syncDb.lastShopId && syncDb.stores[syncDb.lastShopId]) {
+          record = syncDb.stores[syncDb.lastShopId];
+        }
+      } else {
+        record = syncDb.stores[requestedId.toUpperCase()];
+      }
+
+      if (!record) {
+        return res.status(404).json({ success: false, error: 'Store data not found' });
+      }
+
+      return res.json({
+        success: true,
+        data: record,
+      });
+    } catch (err: any) {
+      console.error('Error in GET /api/sync/:shopId:', err);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  });
 
   // Initialize Gemini AI Client
   const apiKey = process.env.GEMINI_API_KEY;

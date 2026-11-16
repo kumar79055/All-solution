@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Smartphone,
   Copy,
@@ -8,6 +8,8 @@ import {
   X,
   AlertCircle,
   Globe,
+  RefreshCw,
+  CheckCircle2,
 } from 'lucide-react';
 
 interface ShareAppModalProps {
@@ -15,6 +17,11 @@ interface ShareAppModalProps {
   onClose: () => void;
   appUrl?: string;
   sharedAppUrl?: string;
+  shopSyncId: string;
+  shopName?: string;
+  productCount: number;
+  distributorCount: number;
+  onSyncNow: () => Promise<boolean>;
 }
 
 export const ShareAppModal: React.FC<ShareAppModalProps> = ({
@@ -22,17 +29,42 @@ export const ShareAppModal: React.FC<ShareAppModalProps> = ({
   onClose,
   appUrl,
   sharedAppUrl = 'https://ais-pre-mrugqyepf5sfhjllykbd2f-652479634211.asia-southeast1.run.app',
+  shopSyncId,
+  shopName,
+  productCount,
+  distributorCount,
+  onSyncNow,
 }) => {
   const [copied, setCopied] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'synced' | 'error'>('idle');
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setSyncStatus('syncing');
+      onSyncNow()
+        .then((ok) => setSyncStatus(ok ? 'synced' : 'error'))
+        .catch(() => setSyncStatus('error'));
+    }
+  }, [isOpen, onSyncNow]);
 
   if (!isOpen) return null;
 
-  // Always prefer the live running origin so the link actually opens a real page
   const currentOrigin =
     typeof window !== 'undefined' ? window.location.origin : '';
-  const liveUrl = currentOrigin || appUrl || sharedAppUrl;
-  const isDevPreview = liveUrl.includes('ais-dev-');
+  const baseUrl = currentOrigin || appUrl || sharedAppUrl;
+  const liveUrl = `${baseUrl}/?shop=${encodeURIComponent(shopSyncId)}`;
+  const isDevPreview = baseUrl.includes('ais-dev-');
+
+  const handleManualSync = async () => {
+    setSyncStatus('syncing');
+    try {
+      const ok = await onSyncNow();
+      setSyncStatus(ok ? 'synced' : 'error');
+    } catch {
+      setSyncStatus('error');
+    }
+  };
 
   const handleCopy = () => {
     const fallbackCopy = () => {
@@ -63,7 +95,7 @@ export const ShareAppModal: React.FC<ShareAppModalProps> = ({
   };
 
   const whatsappText = encodeURIComponent(
-    `🏪 किराना ऑर्डर साथी ऐप लिंक:\n${liveUrl}\n\n(इसे मोबाइल के Google Chrome में खोलें और 3 डॉट्स ⋮ दबाकर 'Add to Home screen' करें)`
+    `🏪 ${shopName || 'किराना ऑर्डर साथी'} ऐप लिंक (आपके पूरे कस्टम डेटा के साथ):\n${liveUrl}\n\nदुकान कोड: ${shopSyncId}\n(इसे मोबाइल के Google Chrome में खोलें और 3 डॉट्स ⋮ दबाकर 'Add to Home screen' करें)`
   );
   const whatsappShareHref = `https://wa.me/?text=${whatsappText}`;
 
@@ -81,7 +113,7 @@ export const ShareAppModal: React.FC<ShareAppModalProps> = ({
                 मोबाइल / फोन पर कैसे चलाएं?
               </h3>
               <p className="text-xs text-stone-500">
-                Open &amp; Install on Mobile Phone, Tablet or Other PC
+                आपके अपने सामान व डिस्ट्रीब्यूटर डेटा के साथ फोन पर खोलें
               </p>
             </div>
           </div>
@@ -94,15 +126,60 @@ export const ShareAppModal: React.FC<ShareAppModalProps> = ({
           </button>
         </div>
 
+        {/* Sync Status Banner */}
+        <div
+          className={`mb-3 rounded-2xl p-3 border text-xs flex items-center justify-between gap-2 ${
+            syncStatus === 'synced'
+              ? 'bg-emerald-50 border-emerald-300 text-emerald-950'
+              : syncStatus === 'error'
+              ? 'bg-red-50 border-red-300 text-red-900'
+              : 'bg-amber-50 border-amber-300 text-amber-900'
+          }`}
+        >
+          <div className="flex items-start gap-2">
+            {syncStatus === 'syncing' ? (
+              <RefreshCw className="w-4 h-4 animate-spin text-amber-700 flex-shrink-0 mt-0.5" />
+            ) : syncStatus === 'error' ? (
+              <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+            ) : (
+              <CheckCircle2 className="w-4 h-4 text-emerald-700 flex-shrink-0 mt-0.5" />
+            )}
+            <div>
+              {syncStatus === 'syncing' && (
+                <strong>आपका कस्टम डेटा लिंक में सेव हो रहा है...</strong>
+              )}
+              {syncStatus === 'synced' && (
+                <>
+                  <strong>आपका पूरा कस्टम डेटा इस लिंक में जुड़ गया है!</strong>
+                  <div className="text-[11px] text-emerald-800 mt-0.5">
+                    {shopName || 'मेरी दुकान'} • {productCount} सामान • {distributorCount} डिस्ट्रीब्यूटर (कोड: <span className="font-mono font-bold">{shopSyncId}</span>)
+                  </div>
+                </>
+              )}
+              {syncStatus === 'error' && (
+                <span>सिंक करने में दिक्कत आई — कृपया दोबारा &quot;सिंक करें&quot; दबाएं।</span>
+              )}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleManualSync}
+            className="text-[11px] font-bold bg-white border border-stone-300 hover:bg-stone-100 text-stone-800 px-2.5 py-1 rounded-lg flex items-center gap-1 whitespace-nowrap"
+          >
+            <RefreshCw className={`w-3 h-3 ${syncStatus === 'syncing' ? 'animate-spin' : ''}`} />
+            <span>सिंक करें</span>
+          </button>
+        </div>
+
         {/* Live URL Box */}
         <div className="bg-emerald-50/80 border border-emerald-300 rounded-2xl p-4 mb-4">
           <div className="text-xs font-bold text-emerald-950 mb-2 flex items-center justify-between gap-2">
             <span className="flex items-center gap-1.5">
               <Globe className="w-4 h-4 text-emerald-700" />
-              <span>अभी चालू लाइव लिंक (Working Link):</span>
+              <span>आपकी दुकान का कस्टम मोबाइल लिंक:</span>
             </span>
             <span className="text-[10px] text-emerald-900 bg-emerald-200/80 px-2 py-0.5 rounded-full font-bold whitespace-nowrap">
-              ✅ चालू है
+              ✅ डेटा सहित चालू
             </span>
           </div>
 
@@ -147,7 +224,7 @@ export const ShareAppModal: React.FC<ShareAppModalProps> = ({
           </div>
         </div>
 
-        {/* WhatsApp Share Anchor (more reliable than window.open inside iframes) */}
+        {/* WhatsApp Share Anchor */}
         <div className="mb-4">
           <a
             href={whatsappShareHref}
@@ -156,10 +233,10 @@ export const ShareAppModal: React.FC<ShareAppModalProps> = ({
             className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-black py-3 px-4 rounded-2xl shadow-md transition flex items-center justify-center gap-2 text-sm transform active:scale-98"
           >
             <MessageCircle className="w-4 h-4 fill-white" />
-            <span>📲 अपने WhatsApp पर यह लिंक भेजें (Send to Phone)</span>
+            <span>📲 अपने WhatsApp पर कस्टम लिंक भेजें (Send to Phone)</span>
           </a>
           <p className="text-[11px] text-stone-500 text-center mt-1.5">
-            WhatsApp पर भेजकर अपने फोन में लिंक दबाएं और <strong>Google Chrome</strong> में खोलें।
+            इस लिंक को फोन पर खोलते ही आपका सारा कस्टम डेटा अपने आप लोड हो जाएगा!
           </p>
         </div>
 
@@ -168,14 +245,14 @@ export const ShareAppModal: React.FC<ShareAppModalProps> = ({
           <div className="mb-4 bg-amber-50 border border-amber-300 rounded-2xl p-3.5 text-xs text-stone-800 space-y-1.5">
             <div className="font-extrabold text-amber-950 flex items-center gap-1.5">
               <AlertCircle className="w-4 h-4 text-amber-700 flex-shrink-0" />
-              <span>फोन पर खोलते समय 2 जरूरी बातें (ध्यान दें):</span>
+              <span>फोन पर खोलते समय ध्यान दें:</span>
             </div>
             <ul className="list-disc pl-5 space-y-1 text-[11px] text-stone-700">
               <li>
-                <strong>वही Google अकाउंट:</strong> फोन के Chrome ब्राउज़र में वही Gmail लॉगिन होना चाहिए जिससे आप कंप्यूटर पर Google AI Studio चला रहे हैं (क्योंकि यह आपका प्राइवेट लाइव प्रीव्यू लिंक है)।
+                <strong>वही Google अकाउंट:</strong> फोन के Chrome ब्राउज़र में वही Gmail लॉगिन रखें जिससे आप कंप्यूटर पर AI Studio चला रहे हैं।
               </li>
               <li>
-                <strong>बिना लॉगिन (पब्लिक / वर्कर के फोन) के लिए:</strong> AI Studio में ऊपर दाईं ओर <strong>Share / Deploy</strong> बटन दबाकर ऐप को पब्लिश करें — उसके बाद जो <code className="bg-amber-100 px-1 rounded">ais-pre-...</code> लिंक बनेगा वह बिना लॉगिन के हर फोन पर 24 घंटे खुलेगा।
+                <strong>WhatsApp के बाहर खोलें:</strong> WhatsApp पर लिंक दबाने के बाद ऊपर 3 डॉट (⋮) → <em>&quot;Open in Chrome&quot;</em> चुनें।
               </li>
             </ul>
           </div>
@@ -193,7 +270,7 @@ export const ShareAppModal: React.FC<ShareAppModalProps> = ({
                 1
               </span>
               <span>
-                ऊपर दिए गए लिंक को अपने फोन के <strong>Google Chrome</strong> या Safari ब्राउज़र में खोलें। (WhatsApp के अंदर न खोलें — ऊपर 3 डॉट दबाकर <em>"Open in Chrome"</em> चुनें)।
+                ऊपर दिए गए कस्टम लिंक को अपने फोन के <strong>Google Chrome</strong> में खोलें।
               </span>
             </div>
 
@@ -215,18 +292,6 @@ export const ShareAppModal: React.FC<ShareAppModalProps> = ({
               </span>
             </div>
           </div>
-
-          <div className="pt-2 border-t border-stone-200 text-[11px] text-emerald-800 font-semibold bg-emerald-50/70 p-2 rounded-xl">
-            💡 <strong>सुझाव:</strong> आपके फोन की होम स्क्रीन पर &quot;किराना साथी&quot; का ऐप आइकन बन जाएगा!
-          </div>
-        </div>
-
-        {/* Data Sync info */}
-        <div className="mt-3 p-3 bg-stone-100 rounded-2xl border border-stone-200 text-xs text-stone-700">
-          <strong>💾 डेस्कटॉप का डेटा मोबाइल में कैसे लाएं?</strong>
-          <p className="text-[11px] text-stone-600 mt-1">
-            डेस्कटॉप पर <strong>दुकान सेटिंग (⚙️)</strong> में जाकर <strong>&quot;बैकअप डाउनलोड&quot;</strong> करें। वह फाइल अपने मोबाइल पर WhatsApp भेजें, फिर मोबाइल में ऐप खोलकर <strong>&quot;बैकअप लोड करें&quot;</strong> दबाएं।
-          </p>
         </div>
 
         {/* Close Button */}
